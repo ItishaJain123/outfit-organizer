@@ -1,6 +1,5 @@
 {
   "name": "outfit-organizer",
-  "homepage": "https://ItishaJain123.github.io/outfit-organizer/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,14 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
     "@tailwindcss/vite": "^4.1.1",
-    "gh-pages": "^6.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",

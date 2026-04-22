@@ -88,13 +88,13 @@ const About = () => {
           <p className="text-gray-500 text-sm mb-5">Ready to try it out?</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/outfit-organizer/upload"
+              to="/upload"
               className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-semibold transition-all duration-300 hover:scale-105"
             >
               Upload an Outfit
             </Link>
             <Link
-              to="/outfit-organizer/wardrobe"
+              to="/wardrobe"
               className="px-6 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl font-semibold border border-white/20 transition-all duration-300 hover:scale-105"
             >
               View Wardrobe

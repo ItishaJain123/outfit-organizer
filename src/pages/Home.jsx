@@ -32,19 +32,19 @@ const Home = () => {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
-              to="/outfit-organizer/upload"
+              to="/upload"
               className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-semibold shadow-lg transition-all duration-300 hover:scale-105"
             >
               Upload Outfit
             </Link>
             <Link
-              to="/outfit-organizer/wardrobe"
+              to="/wardrobe"
               className="px-6 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl font-semibold border border-white/20 transition-all duration-300 hover:scale-105"
             >
               View Wardrobe ({outfits.length})
             </Link>
             <Link
-              to="/outfit-organizer/recommendations"
+              to="/recommendations"
               className="px-6 py-3 bg-white/10 hover:bg-white/15 text-white rounded-xl font-semibold border border-white/20 transition-all duration-300 hover:scale-105"
             >
               Get Recommendations ✨
@@ -77,7 +77,7 @@ const Home = () => {
             <div className="bg-[#1A1A2E] border border-purple-900/30 rounded-2xl p-12 text-center">
               <p className="text-gray-400 text-lg mb-4">Your wardrobe is empty.</p>
               <Link
-                to="/outfit-organizer/upload"
+                to="/upload"
                 className="inline-block px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-medium hover:scale-105 transition"
               >
                 Add your first outfit

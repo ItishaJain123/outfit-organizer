@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { name: "Home", path: "/outfit-organizer", end: true },
-  { name: "About", path: "/outfit-organizer/about" },
-  { name: "Upload", path: "/outfit-organizer/upload" },
-  { name: "Wardrobe", path: "/outfit-organizer/wardrobe" },
-  { name: "Favorites", path: "/outfit-organizer/favorites" },
-  { name: "Recommendations", path: "/outfit-organizer/recommendations" },
-  { name: "Dashboard", path: "/outfit-organizer/dashboard" },
+  { name: "Home", path: "/", end: true },
+  { name: "About", path: "/about" },
+  { name: "Upload", path: "/upload" },
+  { name: "Wardrobe", path: "/wardrobe" },
+  { name: "Favorites", path: "/favorites" },
+  { name: "Recommendations", path: "/recommendations" },
+  { name: "Dashboard", path: "/dashboard" },
 ];
 
 const linkClass = ({ isActive }) =>

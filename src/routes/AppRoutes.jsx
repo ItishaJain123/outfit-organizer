@@ -5,6 +5,9 @@ import Home from "../pages/Home";
 import Upload from "../pages/Upload";
 import Wardrobe from "../pages/Wardrobe";
 import Dashboard from "../pages/Dashboard";
+import Favorites from "../pages/Favorites";
+import Recommendations from "../pages/Recommendations";
+import About from "../pages/About";
 
 const AppRoutes = () => {
   return (
@@ -13,9 +16,12 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/outfit-organizer" element={<Layout />}>
             <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
             <Route path="upload" element={<Upload />} />
             <Route path="wardrobe" element={<Wardrobe />} />
             <Route path="dashboard" element={<Dashboard />} />
+            <Route path="favorites" element={<Favorites />} />
+            <Route path="recommendations" element={<Recommendations />} />
           </Route>
         </Routes>
       </Router>

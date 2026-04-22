@@ -2,216 +2,225 @@ import React, { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addOutfit } from "../features/wardrobeSlice";
 import { Popup } from "../components/Popup";
+import { TYPES, CATEGORIES } from "../utils/constants";
+
+const selectClass =
+  "w-full px-2 py-1.5 rounded-lg bg-[#0A0A18] text-white border border-purple-900/40 focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs transition";
 
 const Upload = () => {
   const dispatch = useDispatch();
   const outfits = useSelector((state) => state.wardrobe?.outfits || []);
+  const outfitsRef = useRef(outfits);
+  outfitsRef.current = outfits; // always up-to-date in async callbacks
+
   const [popup, setPopup] = useState({ show: false, message: "", type: "" });
   const fileInputRef = useRef(null);
-  const [previewImages, setPreviewImages] = useState([]);
-  const [selectedType, setSelectedType] = useState("Top");
-  const [selectedCategory, setSelectedCategory] = useState("Casual");
+  const [isDragging, setIsDragging] = useState(false);
+  const [previews, setPreviews] = useState([]);
+  const stagedImages = useRef(new Set()); // tracks staged base64s synchronously
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    let newImages = [];
+  const processFiles = (files) => {
     for (const file of files) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (outfits.some((outfit) => outfit.image === reader.result)) {
-          setPopup({
-            show: true,
-            message: "This image is already uploaded!",
-            type: "error",
-          });
-        } else {
-          newImages.push(reader.result);
+        const base64 = reader.result;
+
+        // Check against already uploaded outfits
+        if (outfitsRef.current.some((o) => o.image === base64)) {
+          setPopup({ show: true, message: `"${file.name}" is already in your wardrobe.`, type: "error" });
+          return;
         }
+
+        // Check against current staging batch using a ref — no React batching issues
+        if (stagedImages.current.has(base64)) {
+          setPopup({ show: true, message: `"${file.name}" is already selected.`, type: "error" });
+          return;
+        }
+
+        stagedImages.current.add(base64);
+        setPreviews((prev) => [
+          ...prev,
+          { id: Date.now() + Math.random(), image: base64, type: "Top", category: "Casual" },
+        ]);
       };
       reader.readAsDataURL(file);
     }
+  };
 
-    setTimeout(() => {
-      if (newImages.length > 0) {
-        setPreviewImages([...previewImages, ...newImages]);
-      }
-    }, 500);
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) processFiles(files);
+    e.target.value = "";
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+    if (files.length > 0) processFiles(files);
+  };
+
+  const updatePreview = (id, field, value) => {
+    setPreviews((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const removePreview = (id) => {
+    setPreviews((prev) => {
+      const removed = prev.find((item) => item.id === id);
+      if (removed) stagedImages.current.delete(removed.image);
+      return prev.filter((item) => item.id !== id);
+    });
   };
 
   const handleUpload = () => {
-    if (previewImages.length === 0) {
-      setPopup({ show: true, message: "No image selected!", type: "error" });
+    if (previews.length === 0) {
+      setPopup({ show: true, message: "No images selected!", type: "error" });
       return;
     }
-
-    previewImages.forEach((image) =>
+    previews.forEach((item) =>
       dispatch(
         addOutfit({
-          id: Date.now(),
-          image,
-          type: selectedType,
-          category: selectedCategory,
+          id: Date.now() + Math.random(),
+          image: item.image,
+          type: item.type,
+          category: item.category,
           date: new Date().toISOString(),
         })
       )
     );
-
     setPopup({
       show: true,
-      message: "Images uploaded successfully!",
+      message: `${previews.length} outfit${previews.length > 1 ? "s" : ""} uploaded successfully!`,
       type: "success",
     });
-
-    setPreviewImages([]);
-    fileInputRef.current.value = "";
-  };
-
-  const handlePopupClose = () => {
-    setPopup({ show: false, message: "", type: "" });
+    stagedImages.current.clear();
+    setPreviews([]);
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen w-full bg-gradient-to-r from-[#1E1E2E] to-[#3D348B] p-6 overflow-hidden">
-      {/* Decorative Blobs */}
-      <div className="absolute w-72 h-72 bg-[#FF416C] opacity-30 rounded-full top-20 left-10 blur-3xl animate-pulse"></div>
-      <div className="absolute w-96 h-96 bg-[#FFD700] opacity-20 rounded-full bottom-10 right-10 blur-3xl animate-pulse"></div>
+    <div className="min-h-screen bg-[#0F0F1A] relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-950/40 via-transparent to-pink-950/20 pointer-events-none" />
 
-      {/* Heading */}
-      <h1 className="text-5xl font-extrabold text-white drop-shadow-lg wave-animation">
-        Upload Your Dress Here 🛍️
-      </h1>
-      <p className="text-gray-300 text-lg mt-2 fade-in italic">
-        "Style begins with what you wear!"
-      </p>
-
-      <div className="bg-white bg-opacity-30 backdrop-blur-lg shadow-2xl rounded-3xl p-8 w-full max-w-lg border border-gray-300 text-center mt-10 transform hover:scale-105 transition-all duration-300">
-        {/* Dropdowns */}
-        <div className="flex flex-col gap-4 items-center mb-6">
-          <div className="text-left w-full max-w-xs">
-            <label className="block text-sm font-medium text-white mb-1">
-              Select Type:
-            </label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full px-4 py-2 rounded-full bg-white text-gray-800 shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all duration-300"
-            >
-              <option value="Top">Top</option>
-              <option value="Jeans">Jeans</option>
-              <option value="Dress">Dress</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div className="text-left w-full max-w-xs">
-            <label className="block text-sm font-medium text-white mb-1">
-              Select Category:
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-2 rounded-full bg-white text-gray-800 shadow-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all duration-300"
-            >
-              <option value="Casual">Casual</option>
-              <option value="Formal">Formal</option>
-              <option value="Traditional">Traditional</option>
-              <option value="Party">Party</option>
-            </select>
-          </div>
+      <div className="relative z-10 max-w-2xl mx-auto px-6 py-16 page-fade-in">
+        {/* Header */}
+        <div className="text-center mb-10">
+          <p className="text-purple-400 text-sm font-medium uppercase tracking-widest mb-3">
+            Add to Wardrobe
+          </p>
+          <h1 className="text-4xl font-bold text-white mb-2">Upload Your Outfit</h1>
+          <p className="text-gray-400 text-base italic">"Style begins with what you wear."</p>
         </div>
 
-        {/* Upload Area */}
-        <div
-          className="border-2 border-dashed border-gray-300 bg-white bg-opacity-10 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#FFD700] hover:shadow-2xl transition-all duration-300"
-          onClick={() => fileInputRef.current.click()}
-        >
-          <p className="text-black text-lg font-semibold">Drag & Drop Images</p>
-          <p className="text-gray-700 text-sm">or click to browse</p>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            multiple
-            onChange={handleImageChange}
-            ref={fileInputRef}
-          />
-        </div>
-
-        {/* Image Preview */}
-        {previewImages.length > 0 && (
-          <div className="mt-6 flex flex-wrap justify-center gap-4">
-            {previewImages.map((img, index) => (
-              <div key={index} className="relative w-24 h-24">
-                <img
-                  src={img}
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-lg transition-transform hover:scale-105"
-                />
-              </div>
-            ))}
+        <div className="bg-[#1A1A2E] border border-purple-900/30 rounded-2xl p-8">
+          {/* Drop Zone */}
+          <div
+            onClick={() => fileInputRef.current.click()}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
+              isDragging
+                ? "border-purple-400 bg-purple-900/20"
+                : "border-purple-900/40 hover:border-purple-500/60 hover:bg-purple-900/10"
+            }`}
+          >
+            <div className="text-4xl mb-3">📁</div>
+            <p className="text-white font-medium text-sm">Drag & drop images here</p>
+            <p className="text-gray-500 text-xs mt-1">
+              or click to browse — multiple files supported
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              multiple
+              onChange={handleImageChange}
+              ref={fileInputRef}
+            />
           </div>
-        )}
 
-        {/* Upload Button */}
-        <button
-          className="mt-6 px-6 py-3 bg-gradient-to-r from-[#FF416C] to-[#FF4B2B] text-white rounded-full shadow-lg font-semibold text-lg tracking-wide hover:shadow-2xl hover:scale-105 transition-all duration-300"
-          onClick={handleUpload}
-        >
-          🚀 Upload Now
-        </button>
+          {/* Per-image previews */}
+          {previews.length > 0 && (
+            <div className="mt-6 flex flex-col gap-3">
+              <p className="text-gray-400 text-sm">
+                {previews.length} image{previews.length > 1 ? "s" : ""} selected — set type &
+                category for each:
+              </p>
+
+              {previews.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-4 bg-[#0F0F1A] border border-purple-900/30 rounded-xl p-3"
+                >
+                  <img
+                    src={item.image}
+                    alt="preview"
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0 border border-purple-900/30"
+                  />
+
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Type</label>
+                      <select
+                        value={item.type}
+                        onChange={(e) => updatePreview(item.id, "type", e.target.value)}
+                        className={selectClass}
+                      >
+                        {TYPES.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Category</label>
+                      <select
+                        value={item.category}
+                        onChange={(e) => updatePreview(item.id, "category", e.target.value)}
+                        className={selectClass}
+                      >
+                        {CATEGORIES.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => removePreview(item.id)}
+                    className="text-gray-600 hover:text-red-400 transition text-xl flex-shrink-0 leading-none"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpload}
+            disabled={previews.length === 0}
+            className="mt-6 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]"
+          >
+            Upload{" "}
+            {previews.length > 0
+              ? `${previews.length} Outfit${previews.length > 1 ? "s" : ""}`
+              : "Outfit"}
+          </button>
+        </div>
       </div>
 
-      {/* Popup */}
       {popup.show && (
         <Popup
           message={popup.message}
           type={popup.type}
-          onClose={handlePopupClose}
+          onClose={() => setPopup({ show: false, message: "", type: "" })}
         />
       )}
-
-      {/* Animations */}
-      <style jsx>{`
-        @keyframes wave-motion {
-          0% {
-            transform: translateY(0px);
-          }
-          25% {
-            transform: translateY(-5px);
-          }
-          50% {
-            transform: translateY(0px);
-          }
-          75% {
-            transform: translateY(5px);
-          }
-          100% {
-            transform: translateY(0px);
-          }
-        }
-
-        .wave-animation {
-          display: inline-block;
-          animation: wave-motion 2s infinite ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .fade-in {
-          animation: fadeIn 1s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 };

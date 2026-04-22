@@ -1,70 +1,87 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+const navItems = [
+  { name: "Home", path: "/outfit-organizer", end: true },
+  { name: "About", path: "/outfit-organizer/about" },
+  { name: "Upload", path: "/outfit-organizer/upload" },
+  { name: "Wardrobe", path: "/outfit-organizer/wardrobe" },
+  { name: "Favorites", path: "/outfit-organizer/favorites" },
+  { name: "Recommendations", path: "/outfit-organizer/recommendations" },
+  { name: "Dashboard", path: "/outfit-organizer/dashboard" },
+];
+
+const linkClass = ({ isActive }) =>
+  isActive
+    ? "text-white font-semibold border-b-2 border-pink-400 pb-0.5 transition-all duration-200"
+    : "text-gray-300 hover:text-white transition-colors duration-200";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const navItems = [
-    { name: "Home", path: "/outfit-organizer" },
-    { name: "Upload", path: "/outfit-organizer/upload" },
-    { name: "Wardrobe", path: "/outfit-organizer/wardrobe" },
-    { name: "Dashboard", path: "/outfit-organizer/dashboard" },
-  ];
-
   return (
-    <nav className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <h1 className="text-2xl font-bold tracking-wide">Wardrobe Manager</h1>
+    <nav className="bg-[#12122A] border-b border-purple-900/30 text-white shadow-lg sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold tracking-wide font-playfair text-white">
+          Wardrobe Manager
+        </h1>
 
-        {/* Hamburger Icon */}
+        {/* Desktop Menu */}
+        <ul className="hidden md:flex items-center gap-6 text-sm">
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <NavLink to={item.path} end={item.end} className={linkClass}>
+                {item.name}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        {/* Hamburger */}
         <button
-          className="md:hidden block focus:outline-none"
+          className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
         >
           <svg
-            className="w-6 h-6"
+            className="w-5 h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
+            {menuOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
           </svg>
         </button>
-
-        {/* Desktop Menu */}
-        <ul className="hidden md:flex space-x-6 text-lg">
-          {navItems.map((item, index) => (
-            <li key={index}>
-              <Link
-                to={item.path}
-                className="hover:text-gray-300 transition duration-200"
-              >
-                {item.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
       </div>
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden px-6 pb-4">
-          <ul className="flex flex-col space-y-4 text-lg">
-            {navItems.map((item, index) => (
-              <li key={index}>
-                <Link
+        <div className="md:hidden px-6 pb-4 border-t border-purple-900/30 bg-[#12122A]">
+          <ul className="flex flex-col gap-3 pt-4 text-sm">
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <NavLink
                   to={item.path}
-                  className="hover:text-gray-300 transition duration-200"
-                  onClick={() => setMenuOpen(false)} // auto-close after clicking
+                  end={item.end}
+                  className={linkClass}
+                  onClick={() => setMenuOpen(false)}
                 >
                   {item.name}
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>
